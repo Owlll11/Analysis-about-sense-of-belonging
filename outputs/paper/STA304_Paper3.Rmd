@@ -1,0 +1,635 @@
+---
+title: "How Canadian Households' Sense of Belonging Related to Specific Social Identity Factors in 2013"
+author: "Ziyu Jiang, Yizhen Wang, Zifeng Zhu"
+date: '2022-03-20'
+output: pdf_document
+abstract: "Social Identity Survey created and distributed by GSS collected Canadian households' information about social identities. This report will focus on the topic of what variables might Canadian's sense of belonging to Canada depends on. The report has concluded that the level of satisfaction when communicate with their relatives, frequency of following news and current affairs, level of proudness to be Canadian, level of satisfaction of balance between work and life, highest education degree, has been a victim of discrimination in the past five years or not, Income level of the survey respondents are correlated with the their level of sense of belonging to Canada."
+bibliography: myreferencelist.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(car)
+library(knitr)
+library(broom)
+```
+
+```{r, include=FALSE}
+# Read the data
+data <- read_csv("Social Identity Dataset.csv")
+```
+
+```{r, include=FALSE}
+# Select the variables
+data_cleaned <- data %>%
+  select(agegr10, sex, livarr06, icr_30, cwr_40, cwf_60, grp_40, mcr_310,
+         prd_10, wfr_510, dh1ged, sbl_500, discrim, srh_115, relig7, incm)
+```
+
+
+```{r, include=FALSE}
+# String rewriting for creating the bar plots
+data_cleaned$agegr10[data_cleaned$agegr10 == 1] <- "15 to 24 years"
+data_cleaned$agegr10[data_cleaned$agegr10 == 2] <- "25 to 34 years"
+data_cleaned$agegr10[data_cleaned$agegr10 == 3] <- "35 to 44 years"
+data_cleaned$agegr10[data_cleaned$agegr10 == 4] <- "45 to 54 years"
+data_cleaned$agegr10[data_cleaned$agegr10 == 5] <- "55 to 64 years"
+data_cleaned$agegr10[data_cleaned$agegr10 == 6] <- "65 to 74 years"
+data_cleaned$agegr10[data_cleaned$agegr10 == 7] <- "75 years and over"
+```
+
+```{r, include=FALSE}
+data_cleaned$sex[data_cleaned$sex == 1] <- "Male"
+data_cleaned$sex[data_cleaned$sex == 2] <- "Female"
+```
+
+```{r, include=FALSE}
+data_cleaned$livarr06[data_cleaned$livarr06 == 1] <- "Alone"
+data_cleaned$livarr06[data_cleaned$livarr06 == 2] <- "Spouse only"
+data_cleaned$livarr06[data_cleaned$livarr06 == 3] <- "Spouse and single/non-single child"
+data_cleaned$livarr06[data_cleaned$livarr06 == 4] <- "Single/non-single child only"
+data_cleaned$livarr06[data_cleaned$livarr06 == 5] <- "Living with one or two parents"
+data_cleaned$livarr06[data_cleaned$livarr06 == 6] <- "Other living arrangement"
+```
+
+```{r, include=FALSE}
+data_cleaned$icr_30[data_cleaned$icr_30 == 1] <- "Several times a day"
+data_cleaned$icr_30[data_cleaned$icr_30 == 2] <- "About once a day"
+data_cleaned$icr_30[data_cleaned$icr_30 == 3] <- "3-5 times a week"
+data_cleaned$icr_30[data_cleaned$icr_30 == 4] <- "1-2 times a week"
+data_cleaned$icr_30[data_cleaned$icr_30 == 5] <- "A few times per month"
+data_cleaned$icr_30[data_cleaned$icr_30 == 6] <- "Less than once a month"
+data_cleaned$icr_30[data_cleaned$icr_30 == 7] <- "Never"
+data_cleaned$icr_30[data_cleaned$icr_30 == 96] <- "Valid skip"
+data_cleaned$icr_30[data_cleaned$icr_30 == 97] <- "Don’t know"
+data_cleaned$icr_30[data_cleaned$icr_30 == 98] <- "Refusal"
+```
+
+```{r, include=FALSE}
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 1] <- "Very satisfied"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 2] <- "Satisfied"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 3] <- "Neither satisfied nor dissatisfied"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 4] <- "Dissatisfied"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 5] <- "Very dissatisfied"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 6] <- "Valid skip"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 7] <- "Don’t know"
+data_cleaned$cwr_40[data_cleaned$cwr_40 == 8] <- "Refusal"
+```
+
+```{r, include=FALSE}
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 1] <- "Very satisfied"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 2] <- "Satisfied"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 3] <- "Neither satisfied nor dissatisfied"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 4] <- "Dissatisfied"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 5] <- "Very dissatisfied"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 6] <- "Valid skip"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 7] <- "Don’t know"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 8] <- "Refusal"
+data_cleaned$cwf_60[data_cleaned$cwf_60 == 9] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$grp_40[data_cleaned$grp_40 == 1] <- "At least once a week"
+data_cleaned$grp_40[data_cleaned$grp_40 == 2] <- "A few times a month"
+data_cleaned$grp_40[data_cleaned$grp_40 == 3] <- "Once a month"
+data_cleaned$grp_40[data_cleaned$grp_40 == 4] <- "Once or twice a year"
+data_cleaned$grp_40[data_cleaned$grp_40 == 5] <- "Not in the past year"
+data_cleaned$grp_40[data_cleaned$grp_40 == 6] <- "Valid skip"
+data_cleaned$grp_40[data_cleaned$grp_40 == 7] <- "Don’t know"
+data_cleaned$grp_40[data_cleaned$grp_40 == 8] <- "Refusal"
+```
+
+```{r, include=FALSE}
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 1] <- "Daily"
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 2] <- "Several times each week"
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 3] <- "Several times each month"
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 4] <- "Rarely"
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 5] <- "Never"
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 7] <- "Don’t know"
+data_cleaned$mcr_310[data_cleaned$mcr_310 == 8] <- "Refusal"
+```
+
+```{r, include=FALSE}
+data_cleaned$prd_10[data_cleaned$prd_10 == 1] <- "Very proud"
+data_cleaned$prd_10[data_cleaned$prd_10 == 2] <- "Proud"
+data_cleaned$prd_10[data_cleaned$prd_10 == 3] <- "Somewhat proud"
+data_cleaned$prd_10[data_cleaned$prd_10 == 4] <- "Not very proud"
+data_cleaned$prd_10[data_cleaned$prd_10 == 5] <- "Not proud at all"
+data_cleaned$prd_10[data_cleaned$prd_10 == 6] <- "No opinion"
+data_cleaned$prd_10[data_cleaned$prd_10 == 7] <- "Not a Canadian citizen"
+data_cleaned$prd_10[data_cleaned$prd_10 == 97] <- "Don’t know"
+data_cleaned$prd_10[data_cleaned$prd_10 == 98] <- "Refusal"
+```
+
+```{r, include=FALSE}
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 1] <- "Very satisfied"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 2] <- "Satisfied"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 3] <- "Neither satisfied nor dissatisfied"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 4] <- "Dissatisfied"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 5] <- "Very dissatisfied"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 6] <- "Valid skip"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 7] <- "Don’t know"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 8] <- "Refusal"
+data_cleaned$wfr_510[data_cleaned$wfr_510 == 9] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$dh1ged[data_cleaned$dh1ged == 1] <- "Less than High School"
+data_cleaned$dh1ged[data_cleaned$dh1ged == 2] <- "Graduated from High School"
+data_cleaned$dh1ged[data_cleaned$dh1ged == 3] <- "Post-secondary diploma"
+data_cleaned$dh1ged[data_cleaned$dh1ged == 4] <- "University degree"
+data_cleaned$dh1ged[data_cleaned$dh1ged == 9] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 1] <- "Very strong"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 2] <- "Somewhat strong"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 3] <- "Somewhat weak"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 4] <- "Very weak"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 5] <- "No opinion"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 7] <- "Don’t know"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 8] <- "Refusal"
+data_cleaned$sbl_500[data_cleaned$sbl_500 == 9] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$discrim[data_cleaned$discrim == 1] <- "Yes"
+data_cleaned$discrim[data_cleaned$discrim == 2] <- "No"
+data_cleaned$discrim[data_cleaned$discrim == 7] <- "Don’t know"
+data_cleaned$discrim[data_cleaned$discrim == 8] <- "Refusal"
+data_cleaned$discrim[data_cleaned$discrim == 9] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$srh_115[data_cleaned$srh_115 == 1] <- "Excellent"
+data_cleaned$srh_115[data_cleaned$srh_115 == 2] <- "Very good"
+data_cleaned$srh_115[data_cleaned$srh_115 == 3] <- "Good"
+data_cleaned$srh_115[data_cleaned$srh_115 == 4] <- "Fair"
+data_cleaned$srh_115[data_cleaned$srh_115 == 5] <- "Poor"
+data_cleaned$srh_115[data_cleaned$srh_115 == 7] <- "Don’t know"
+data_cleaned$srh_115[data_cleaned$srh_115 == 8] <- "Refusal"
+data_cleaned$srh_115[data_cleaned$srh_115 == 9] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$relig7[data_cleaned$relig7 == 1] <- "Buddhist"
+data_cleaned$relig7[data_cleaned$relig7 == 2] <- "Christian"
+data_cleaned$relig7[data_cleaned$relig7 == 3] <- "Hindu"
+data_cleaned$relig7[data_cleaned$relig7 == 4] <- "Jewish"
+data_cleaned$relig7[data_cleaned$relig7 == 5] <- "Islam (Muslim)"
+data_cleaned$relig7[data_cleaned$relig7 == 6] <- "Other"
+data_cleaned$relig7[data_cleaned$relig7 == 7] <- "No religion"
+data_cleaned$relig7[data_cleaned$relig7 == 97] <- "Don’t know"
+data_cleaned$relig7[data_cleaned$relig7 == 98] <- "Refusal"
+data_cleaned$relig7[data_cleaned$relig7 == 99] <- "Not stated"
+```
+
+```{r, include=FALSE}
+data_cleaned$incm[data_cleaned$incm == 1] <- "No income"
+data_cleaned$incm[data_cleaned$incm == 2] <- "Less than $5,000"
+data_cleaned$incm[data_cleaned$incm == 3] <- "$5,000 to $9,999"
+data_cleaned$incm[data_cleaned$incm == 4] <- "$10,000 to $14,999"
+data_cleaned$incm[data_cleaned$incm == 5] <- "$15,000 to $19,999"
+data_cleaned$incm[data_cleaned$incm == 6] <- "$20,000 to $29,999"
+data_cleaned$incm[data_cleaned$incm == 7] <- "$30,000 to $39,999"
+data_cleaned$incm[data_cleaned$incm == 8] <- "$40,000 to $49,999"
+data_cleaned$incm[data_cleaned$incm == 9] <- "$50,000 to $59,999"
+data_cleaned$incm[data_cleaned$incm == 10] <- "$60,000 to $79,999"
+data_cleaned$incm[data_cleaned$incm == 11] <- "$80,000 to $99,999"
+data_cleaned$incm[data_cleaned$incm == 12] <- "$100,000 or more"
+data_cleaned$incm[data_cleaned$incm == 97] <- "Don’t know"
+data_cleaned$incm[data_cleaned$incm == 98] <- "Refusal"
+data_cleaned$incm[data_cleaned$incm == 99] <- "Not stated"
+```
+
+
+# Introduction
+
+The sense of belonging is not only about simply getting involved with other people; it is focused on gaining acceptance, attention, and support from members of the group as well as providing the same attention to other members.[@11] It was being said that females belong strongly in slightly larger proportions than males, and in Quebec, lower proportions belong strongly to Canada. [@10] Immigration, Refugees and Citizenship Canada (CIC) has put interests on the topics of sense of belonging in multiple scales for their current and future policies and programs of integration, citizenship and multiculturalism.[@10] The GSS program, established in 1985, conducts surveys across the 10 provinces. The GSS is recognized for its regular collection of cross-sectional data that allows for trend analysis, and its capacity to test and develop new concepts that address current and emerging issues.[@GSS] The GSS created and distributed a social survey about Social Identity and collected the data from the respondents via Statistics Canada.
+
+After analyzing the data in the certain period of time, we can see that the survey respondent’s level of satisfaction when communicate with their relatives, frequency of following news and current affairs, level of proudness to be Canadian, level of satisfaction of balance between work and life, highest education degree, has been a victim of discrimination in the past five years or not, Income level are correlated with the survey respondent’s level of sense of belonging to Canada. In this report, we will use the social identity survey data from Canadian general social surveys (GSS) to investigate the relationship between the survey respondent’s level of sense of belonging to Canada and other independent variables. We will discuss the limitation of the data and the potential bias from the data, apply the logistic regression model on the data. At last, we will discuss the distributions of the independents variables in interests, the resulting influences of the final model, the weakness of our researching processes and the lessons learned from the research and the possible improvement in future.
+
+R statistical programming language[@06] is used for analyzing, and the package `tidyverse`[@01] is used for data visualizing and data manipulating in this project. The package `broom`[@03] is also used in this project to convert the statistical objects into tidy tibbles, the package `knitr`[@05] is used to knit the R markdown file to pdf form and ro create the tables,and the package `ggplot2`[@04] is used for creating graphs. Finally, the package `car`[@07] is used to creating regression models of the variables.
+
+# Data
+
+## Data Source
+
+The 2013 Canadian General Social Survey on Social Identity has interviewed individuals who were 15 years old and over through Canada’s ten provinces, and the survey data are subject to both sampling and non-sampling errors [@GSS].
+This report is based on the data of survey questionnaire results published on Canadian GSS website, and the csv format of the data was loaded into R Studio by R project [@06]. The dataset contains several variables that we are interested to study on, such as citizens’ sense of social belonging, people’s connections with friends and relatives and so on. The collection of data starts from June 2013 to March 2014, and the dataset was the second version of social identity survey. The version 1 was conducted in 2008.
+
+## Survey Methodology and Collection
+
+The Social Identity survey we studied was firstly meant to gather data on social trends in order to monitor changes in the living conditions and well-being of Canadians over time, and secondly to provide immediate information on specific social policy issues of current or emerging interest [@GSS]. In this report, we will use provided survey information to explore how Canadian residents’ sense of belonging was related to several specific factors, such as their social networking, mental health and so on.
+
+The target population for the survey included all people who were 15 years and older in Canada’s ten provinces in 2013, excluding residents of the Yukon, Northwest Territories, and Nunavut as well as full-time residents of institutions. What’s more, in order to carry out sampling, the ten provinces were respectively divided into geographic areas. For instance, many Census Metropolitan Areas were each considered separate areas. 
+Survey interviews were conducted via computer assisted telephone interviewing (CATI) and electronic questionnaire (EQ). And the survey frame was created using two different components, which were lists of telephone numbers in use available to Statistics Canada from various sources and the list of all dwellings within the ten provinces. In each frame, each group of telephone numbers was assigned to a stratum within its province. 
+By conducting indicated survey frame, the target sample size for the survey was 31,973, while the actual number of respondents was 27,695. From the results, coverage of the targeted population by survey frame was estimated to be more than 88 percent complete. The exclusion mostly came from households without eligible telephones, and some GSS respondents were removed for confidentiality reasons. At the same time, the whole sample was divided into three categories. For the regular sample, a household was eligible if it included at least one person 15 years of age or older. For the oversample of immigrants, a household was eligible if it included at least one person 15 years of age or older born outside of Canada. Lastly, for the oversample of youth, a household was eligible if it included at least one person between the age of 15 and 24 years old [@GSS]. 
+
+The data collected for the survey are made up of two components: classification and core content. Classification content (age, sex, education, income) helps to delineate population groups for use in the analysis of core data. Core content is designed to measure changes in society related to living conditions and well-being and to supply data to inform specific policy issues [@GSS]. Since the survey data collected residents’ information all over Canada, the dataset would have a large sample and cover a relatively wider range of participants. Thus, the survey results would be very representative. Also, interviewing through telephone and online questionnaire could make the process quite efficient and convenient. However, because of these fast means of approaching, the amount of non-response would increase. In this case, weights for responding households were adjusted to represent non-responding households. This was done independently within each stratum group. Firstly, adjustment was made for complete non-response. Then the adjustment was done for partial non-response, these households had some auxiliary information which was used to model propensity of response. The combination of these two adjustments were recorded, non-responding households were then dropped [@GSS].
+
+Similar datasets could not been found and used, since this Social Identity survey was conducted all over Canada by Statistics Canada and GSS. The data size was massive and only national institutions such as Statistics Canada could obtain the frame (i.e., households telephone numbers) to reach to most households around the country. So it is hard to find similar datasets.
+
+What’s more, some bias may exist in this Social Identity survey. For instance, since the survey was done in 2013, the technology at that time was not as developed as these days. So some questions such as accessing of social networking website may have huge amount of valid skip, since many people did not have social media account at that time. But in general, the survey is relatively comprehensive and objective. 
+
+## Data Characteristic
+
+There were 790 variables and 27534 observations in the raw dataset with no missing values. The variables this dataset contained were covering excessive topics for this research, it would be simpler and more direct to the interested topic if applying cleaning processes. The first step of the cleaning process was selecting the variables related to the topic in interest; 16 variables were selected by common sense for analysing the interested topic, those are: agegr10, sex, livarr06, icr_30, cwr_40, cwf_60, grp_40, mcr_310,prd_10, wfr_510, dh1ged, sbl_500, discrim, srh_115, relig7, and incm. All of these variables are categorical and the meanings these variables stand for were included in Table 1 which was created with function `kable`[@05]. A dataframe called "df" was created for table1, which includes two new created variables "variables" and "descriptions".
+
+```{r, include=FALSE}
+variables <-  c("agegr10", "sex", "livarr06", "icr_30", "cwr_40", "cwf_60",
+                "grp_40","mcr_310","prd_10", "wfr_510", "dh1ged", "sbl_500",
+                "discrim","srh_115","relig7", "incm")
+descriptions <- c("Age Group of Survey Respondents", 
+                  "Gender of Survey Respondents", 
+                  "Living arrangement of Survey Respondent's household",
+                  "Survey Respondent's frequency of access of social networking sites", 
+                  "Survey Respondent's level of satisfaction when communicate with their relatives", 
+                  "Survey Respondent's level of satisfaction when communicate with their friends",
+                  "Survey Respondent's frequency of participating in group activities and meetings",
+                  "Survey Respondent's frequency of following news and current affairs",
+                  "Survey Respondent's level of proudness to be Canadian",
+                  "Survey Respondent's level of satisfaction of balance between work and life",
+                  "Survey Respondent's highest education degree",
+                  "Survey Respondent's level of sense of belonging to Canada",
+                  "Survey respondent has been a victim of discrimination in the past five years or not",
+                  "Survey respondent's mental health state(self-rated)",
+                  "Survey respondent's religion",
+                  "Survey respondent's Income level")
+df <- data.frame(variables, descriptions)
+```
+
+```{r, echo=FALSE}
+knitr::kable(df, caption = "Variable names and descriptions.")
+```
+
+Since the variables selected were all categorical with numeric way of expression in the dataset, the numerical values in the variables were rewritten with the strings of their meanings for the graphing necessity. At the same time, a new dataset was created from the raw dataset which selected the chosen variables and filtered out the observations who did not answer the survey questions clearly. 
+
+After that, a new variable called sbl_500_level was created which combined the 4 responses of the variable sbl_500 into two levels: "Very strong" and "Somewhat strong" to the level "Strong"; "Very weak" and "Somewhat weak" to the level "Weak". Then the observations in the level "Strong" were assigned the value 1 for the new variable sbl_500_level, and the observations in the level "Weak" were assigned the value 0 for the new variable sbl_500_level.
+
+Barplots of these 16 variables were created by ‘ggplot2’ [@04]. From the plots we can observe that most respondents’ ages were from 35 to 64 years old, and female respondents took a bit larger proportion than male, also, over 8000 of them have obtained post-secondary diploma. The respondents mostly lived with their spouse or on their own. And almost every households was quite satisfied with their communication with friends and relatives, only very small proportion of respondents had poor mental health (less than 500). Many of these residents participated in group activities at least once a week, yet there were still more than 2000 residents did not participate in any group meetings in the past year. Most households had annual income level between $20,000 to $40,000. More than 15000 respondents followed news on daily bases, and almost every participants were quite proud to be Canadian, yet there were still one third of them have experienced any kind of discrimination. In general, most participants had relatively strong sense of belonging in Canada (over 20000), and only a few of them had weak sense of belonging (less than 2500). 
+However, huge amount of valid skip answers appeared in several questions such as social networking and balance between work and life. So our following analysis will focus on data with more concrete answers.
+
+\pagebreak
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of the survey respondent’s age (in years)."}
+# Bar plots of the variables
+data_cleaned %>%
+  ggplot(aes(x = as.factor(agegr10),
+             fill = as.factor(agegr10))) + 
+  geom_bar() + labs(x = "Age Groups", y = "Count") +
+  ggtitle("Age Group of Survey Respondents") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of Survey Respondent's Gender."}
+data_cleaned %>%
+  ggplot(aes(x = as.factor(sex), fill = as.factor(sex))) + 
+  geom_bar() + labs(x = "Gender", y = "Count") +
+  ggtitle("Gender of Survey Respondents") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "none") +
+  coord_flip()
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of living arrangement of Survey Respondent's household."}
+data_cleaned %>%
+  ggplot(aes(x = as.factor(livarr06), fill = as.factor(livarr06))) + 
+  geom_bar() + labs(x = "Living arrangement", y = "Count") +
+  ggtitle("Living arrangement of Survey Respondent's household") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's frequency of access of social networking sites."}
+order <- c("Several times a day", "About once a day", "3-5 times a week",
+           "1-2 times a week", "A few times per month", 
+           "Less than once a month", "Never", "Valid skip", "Don’t know",
+           "Refusal")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(icr_30), levels = order), 
+             fill = as.factor(icr_30))) + 
+  geom_bar() + labs(x = "Frequency of access", y = "Count") +
+  ggtitle("Survey Respondent's frequency of access of social networking sites") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's level of satisfaction when communicate with their relatives."}
+order1 <- c("Very satisfied", "Satisfied", "Neither satisfied nor dissatisfied",
+           "Dissatisfied", "Very dissatisfied", "Valid skip", "Don’t know",
+           "Refusal")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(cwr_40), levels = order1), 
+             fill = as.factor(cwr_40))) + 
+  geom_bar() + labs(x = "Level of satisfaction", y = "Count") +
+  ggtitle("Survey Respondent's level of satisfaction when communicate with their relatives") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's level of satisfaction when communicate with their friends."}
+order2 <- c("Very satisfied", "Satisfied", "Neither satisfied nor dissatisfied",
+           "Dissatisfied", "Very dissatisfied", "Valid skip", "Don’t know",
+           "Refusal", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(cwf_60), levels = order2), 
+             fill = as.factor(cwf_60))) + 
+  geom_bar() + labs(x = "Level of satisfaction", y = "Count") +
+  ggtitle("Survey Respondent's level of satisfaction when communicate with their friends") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's frequency of participating in group activities and meetings."}
+order3 <- c("At least once a week", "A few times a month", "Once a month",
+           "Once or twice a year", "Not in the past year", "Valid skip", 
+           "Don’t know", "Refusal")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(grp_40), levels = order3), 
+             fill = as.factor(grp_40))) + 
+  geom_bar() + labs(x = "Frequency", y = "Count") +
+  ggtitle("Survey Respondent's frequency of participating in group
+activities and meetings") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's frequency of following news and current affairs."}
+order4 <- c("Daily", "Several times each week", "Several times each month",
+           "Rarely", "Never", "Don’t know", "Refusal")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(mcr_310), levels = order4), 
+             fill = as.factor(mcr_310))) + 
+  geom_bar() + labs(x = "Frequency", y = "Count") +
+  ggtitle("Survey Respondent's frequency of following news and current affairs") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's level of proudness to be Canadian."}
+order5 <- c("Very proud", "Proud", "Somewhat proud", "Not very proud", 
+           "Not proud at all", "No opinion", "Not a Canadian citizen",
+           "Don’t know", "Refusal")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(prd_10), levels = order5), 
+             fill = as.factor(prd_10))) + 
+  geom_bar() + labs(x = "Level of proudness", y = "Count") +
+  ggtitle("Survey Respondent's level of proudness to be Canadian") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's level of satisfaction of balance between work and life."}
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(wfr_510), levels = order2), 
+             fill = as.factor(wfr_510))) + 
+  geom_bar() + labs(x = "Level of satisfication", y = "Count") +
+  ggtitle("Survey Respondent's level of satisfaction of balance between work and life") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's highest education degree."}
+order6 <- c("Less than High School", "Graduated from High School", 
+            "Post-secondary diploma", "University degree", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(dh1ged), levels = order6), 
+             fill = as.factor(dh1ged))) + 
+  geom_bar() + labs(x = "Highest education degree", y = "Count") +
+  ggtitle("Survey Respondent's highest education degree") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey Respondent's level of sense of belonging to Canada."}
+order7 <- c("Very strong", "Somewhat strong", "Somewhat weak", "Very weak", 
+           "No opinion", "Don’t know", "Refusal", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(sbl_500), levels = order7), 
+             fill = as.factor(sbl_500))) + 
+  geom_bar() + labs(x = "Level of sense of belonging", y = "Count") +
+  ggtitle("Survey Respondent's level of sense of belonging to Canada") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey respondent has been a victim of discrimination in the past five years or not."}
+order8 <- c("Yes", "No", "Don’t know", "Refusal", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(discrim), levels = order8), 
+             fill = as.factor(discrim))) + 
+  geom_bar() + labs(x = "Response", y = "Count") +
+  ggtitle("Survey respondent has been a victim of discrimination in the past five years or not") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none")
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey respondent's mental health state(self-rated)."}
+order9 <- c("Excellent", "Very good", "Good", "Fair", "Poor", "Don’t know",
+            "Refusal", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(srh_115), levels = order9), 
+             fill = as.factor(srh_115))) + 
+  geom_bar() + labs(x = "State", y = "Count") +
+  ggtitle("Survey respondent's mental health state(self-rated)") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none")
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey respondent's religion."}
+order10 <- c("Buddhist", "Christian", "Hindu", "Jewish", "Islam (Muslim)",
+             "Other", "No religion", "Don’t know", "Refusal", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(relig7), levels = order10), 
+             fill = as.factor(relig7))) + 
+  geom_bar() + labs(x = "Religion", y = "Count") +
+  ggtitle("Survey respondent's religion") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.cap="Distribution of survey respondent's Income level."}
+order11 <- c("No income", "Less than $5,000", "$5,000 to $9,999", 
+             "$10,000 to $14,999", "$15,000 to $19,999","$20,000 to $29,999", 
+             "$30,000 to $39,999", "$40,000 to $49,999", "$50,000 to $59,999",
+             "$60,000 to $79,999", "$80,000 to $99,999", "$100,000 or more",
+             "Don’t know", "Refusal", "Not stated")
+data_cleaned %>%
+  ggplot(aes(x = factor(as.factor(incm), levels = order11), 
+             fill = as.factor(incm))) + 
+  geom_bar() + labs(x = "Income level", y = "Count") +
+  ggtitle("Survey respondent's Income level") + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 20, 
+                                   hjust=1, size=6))
+```
+
+\pagebreak
+
+More specifically, we can take a closer look at the questions regarding the variables that we choose to focus on. For question asked about variable "GRP_40", the question is “[Including participation both on and off the Internet, how/How] often did you participate in group activities and meetings? [Do not include any of your volunteer activities.]”. This is a great question because it clearly states that respondent should include activities both online and offline but not volunteer activities. For variable "MCR_10", the question being asked is “How frequently do you follow news and current affairs (e.g. international, national, regional or local)?”. This question is not very clear and obvious for participant to answer since sometimes we follow news passively from the TV in the lobby of some buildings or other people, whether we consider “follow” to include unconscious and passive follows is a problem here. The question designed for variable "WFR_510" is “How satisfied [are/were] you with the balance between your job and home life? [Are/Were] you...?”. The way this question is asked seems to ignore the fact that some people might work as a housewife or househusband.
+
+\pagebreak
+
+# Result
+
+Here in the result section, we have conducted logistic regression model to examine the influential variables towards participants’ sense of belonging as Canadian. A starting logistic regression model called "model1" with the response variable "sbl_500_level" was created using the function `glm`[@07] to investigate the relationships between the response variables and the other selected variables. The function `vif`[@07] was used for checking the multicollinearity between the variables. If a Variance Inflation Factor(VIF) of a independent variable exceeding 5 indicates high multicollinearity between this independent variable and the others.[@08] By checking the VIFs, the variable "agegr10" which represents the age group of the survey respondents was found to have VIF around 7.32 which is larger than 5. 
+
+The second logistic regression model with the same response variable was then created by removing the variable "agegr10" from the staring model, the VIFs of the independent variables were all under 5 which means there is no serious multicollinearity problems in the second model. Thus the second model "model2" was chosen to be the final model of this analysis; the model summary was included in Table 2 in the appendix session. Table 2 was also created with function `kable`[@05], the function `tidy`[@03] was used for converting the statistical objects in the model summary into tidy tibbles.
+
+```{r, include=FALSE}
+# Clean the data to create the model
+data_cleaned_new <- data %>%
+  select(agegr10, sex, livarr06, icr_30, cwr_40, cwf_60, grp_40, mcr_310,
+         prd_10, wfr_510, dh1ged, sbl_500, discrim, srh_115, relig7, incm) %>%
+  filter(!(sbl_500 == 5 | sbl_500 == 7 |
+             sbl_500 == 8|sbl_500 == 9)) %>%
+  filter(!(livarr06 == 6)) %>%
+  filter(!(icr_30 == 96 | icr_30 == 97 | icr_30 == 98)) %>%
+  filter(!(cwr_40 == 6 | cwr_40 == 7| cwr_40 == 8)) %>%
+  filter(!(cwf_60 == 6 | cwf_60 == 7 | cwf_60 == 8 | cwf_60 == 9)) %>%
+  filter(!(grp_40 == 6 | grp_40 == 7 | grp_40 == 8)) %>%
+  filter(!(mcr_310 == 7 | mcr_310 == 8)) %>%
+  filter(!(prd_10 == 6 | prd_10 == 7 | prd_10 == 97 | prd_10 == 98)) %>%
+  filter(!(wfr_510 == 6 | wfr_510 == 7 | wfr_510 == 8 | wfr_510 == 9)) %>%
+  filter(!(dh1ged == 9)) %>%
+  filter(!(discrim == 7 | discrim == 8 | discrim == 9)) %>%
+  filter(!(srh_115 == 7 | srh_115 == 8 | srh_115 == 9)) %>%
+  filter(!(relig7 == 97 | relig7 == 98 | relig7 == 99)) %>%
+  filter(!(incm == 97 | incm == 98 | incm == 99)) %>%
+  mutate(sbl_500_level = case_when(sbl_500 == 1 | sbl_500 == 2 ~ "1", 
+                                   sbl_500 == 3 | sbl_500 == 4 ~ "0"))
+  
+```
+
+```{r, include=FALSE}
+# Create the initial model and check the vif for the variables
+model1 <- glm(as.factor(sbl_500_level) ~ as.factor(agegr10) + as.factor(sex) + 
+                as.factor(livarr06) + as.factor(icr_30) + as.factor(cwr_40) +
+                as.factor(cwf_60) + as.factor(grp_40) + as.factor(mcr_310) +
+                as.factor(prd_10) + as.factor(wfr_510) + as.factor(dh1ged) +  
+                as.factor(discrim) + as.factor(srh_115) + as.factor(relig7) +
+                as.factor(incm), 
+              family = binomial, data = data_cleaned_new)
+vif(model1)
+```
+
+```{r, include=FALSE}
+# Create the new model
+model2 <- glm(as.factor(sbl_500_level) ~ as.factor(sex) + 
+                as.factor(livarr06) + as.factor(icr_30) + as.factor(cwr_40) +
+                as.factor(cwf_60) + as.factor(grp_40) + as.factor(mcr_310) +
+                as.factor(prd_10) + as.factor(wfr_510) + as.factor(dh1ged) +  
+                as.factor(discrim) + as.factor(srh_115) + as.factor(relig7) +
+                as.factor(incm), 
+              family = binomial, data = data_cleaned_new)
+vif(model2)
+```
+
+```{r, include=FALSE}
+# Summary the final model
+summary(model2)
+```
+
+
+
+From the summary of the final model, we can see that there were 7 independent variables contain p-values less than 0.1: "cwr_40", "mcr_310", "prd_10", "wfr_510", "dh1ged", "discrim", and "incm". This would means that when our null hypothesis is "the variable has no correlation with the response variable", with the significance level being 0.1, we have evidence to reject the null hypothesis for these 7 variables.[@09] Thus we can say that, survey respondent’s level of satisfaction when communicate with their relatives, survey respondent’s frequency of following news and current affairs, survey respondent’s level of proudness to be Canadian, survey respondent’s level of satisfaction of balance between work and life, survey respondent’s highest education degree, survey respondent has been a victim of discrimination in the past five years or not, survey respondent’s income level are correlated with the survey respondent’s level of sense of belonging to Canada. 
+
+
+
+# Discussion
+
+## Conclusions
+
+The paper has used the 15 chosen variables to examine their relationship with Canadian sense of belonging factor. After we created the bar plots and regression model, we are then able to discuss on the results that they have concluded.
+
+From observations of bar plots, several factors showed lots of valid skip responses. Valid skip indicates that the question is confirmed to be “off path” by respondents because they clearly belong to another group. For instance, some questions such as accessing social networking sites may not be realistic for some participants, since in 2013 they might not have concrete means to visit internet. Also, almost 20000 of households obtained the religion of Christian, this may come from that most residents in Canada are white people, and other races’ religion are not as common as Christian in the country.
+
+After we conducted the logistic regression model, seven categorical variables were found to have effect on sense of belonging. They were respectively respondent’s level of satisfaction when communicate with their relatives, survey respondent’s frequency of following news and current affairs, survey respondent’s level of proudness to be Canadian, survey respondent’s level of satisfaction of balance between work and life, survey respondent’s highest education degree, survey respondent has been a victim of discrimination in the past five years or not and survey respondent’s income level. These factors have different level of influences, for instance, respondent’s proudness and whether they have experienced discrimination have most obvious correlations. As the number of people not been through discrimination increased, their sense of belonging would increase remarkably. And when households felt proud to be Canadian, their sense of belonging would increase as well. 
+What’s more, if respondents were dissatisfied with their communication with relatives, their sense of belonging would decrease slightly. Also, if people were not satisfied with their balance between work and life, their sense of belonging would decrease as well. Notice that following news several times a week had negative influence on sense of belonging too, this may due to seeing disturbing news and messages. The influence of households annual income and education level were not as obvious as others, yet the results still showed that when people were higher educated and gained higher income, they would feel more belonging.
+
+In this case, in order to improve households’ sense of belonging as Canadian, the discrimination in any kinds should be not allowed in the country. People should communicate more with their relatives and friends to create tight bound with cared ones.
+
+## Weakness and Areas for Furture
+
+Some limitations are involved as we processing our analysis. For instance, the raw survey data has almost 1000 variables and it could be hard to correctly find the significant factors. We have looked through each variable’s data and chosen 16 most representative factors to construct the research. Still, some of these survey questions can be very subjective and may cause potential bias. For example, when asking people about their satisfaction with communication with relatives and friends, some of them may lie about their actual feelings. 
+
+As we constructed the logistic regression, we had to eliminate the unclear answers (i.e., valid skip, don’t know) to keep the categorical variables more specific and easier to model. Some variables such as social networking may have large amount of unclear answers, and this could cause some level of inaccuracy to our result. 
+
+In our future study, we could use our supplementary survey in appendix to obtain more concrete and  up-to-date responses. What’s more, we could learn more practical and complex regression models to conduct better results for massive and diverse data like this survey.
+
+\pagebreak
+
+# Appendix
+
+## Model summary table for model2
+
+
+```{r, echo=FALSE}
+knitr::kable(tidy(model2), caption = "Model summary table for model2")
+```
+
+\pagebreak
+
+## Supplementary survey
+
+Follow the link to our survey or scan our QR Code to survey: https://forms.gle/2mu9Gu3j7T98iW7L6
+
+
+![QR code for the survey](images/surveyqrcode1.png)
+
+
+The following images show the screenshots of the online form.
+
+
+![Screenshot of survey questions. Q1-Q4](images/survey1.jpg)
+
+
+![Screenshot of survey questions. Q5-Q8](images/survey2.jpg)
+
+
+![Screenshot of survey questions. Q9-Q13](images/survey3.jpg)
+
+
+
+
+
+
+
+
+\pagebreak
+
+# References
+
+
+
